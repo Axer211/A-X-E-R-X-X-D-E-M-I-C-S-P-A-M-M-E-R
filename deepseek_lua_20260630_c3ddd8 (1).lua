@@ -1,0 +1,1003 @@
+-- [[ 👑 AXER BOSS x WR4ITH - FULL FEATURES EDITION V3 ]]
+-- [[ Discord: Mickeyyy009 | Roblox: erennn0779 ]]
+-- [[ Credits: Axer, Xdemic ]]
+
+local RunService = game:GetService("RunService")
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
+local VirtualUser = game:GetService("VirtualUser")
+local TextChatService = game:GetService("TextChatService")
+local Lighting = game:GetService("Lighting")
+local lp = Players.LocalPlayer
+
+local ParentUI
+local success, err = pcall(function() return game:GetService("CoreGui") end)
+if success and err then ParentUI = err else ParentUI = lp:WaitForChild("PlayerGui") end
+
+-- [[ VARIABLES ]]
+local myName = "Axer Spammer V3"
+local myBio = "Welcome Dear " .. lp.Name
+local attackEnabled = false
+local antiAfkEnabled = false
+local speedEnabled = false
+local jumpEnabled = false
+local noclipEnabled = false
+local nositEnabled = false
+local antiCopyEnabled = false
+local antiFlingEnabled = false
+local delayTime = 2
+local guiOpen = false
+local spamMode = "default" -- "default" or "custom"
+local customMessages = {} -- table to store custom spam lines
+local lastPosition = nil
+local flingDetected = false
+
+-- [[ ANTI-FLING VARIABLES ]]
+local humanoidRootPart = nil
+local antiFlingConnection = nil
+
+-- [[ SOUND ENGINE ]]
+local function playSfx(id, vol)
+    local s = Instance.new("Sound")
+    s.SoundId = "rbxassetid://" .. tostring(id)
+    s.Volume = vol or 0.5
+    s.Parent = game:GetService("SoundService")
+    s:Play()
+    s.Ended:Connect(function() s:Destroy() end)
+end
+
+-- Premium sounds
+local CLICK_SFX  = 6895079853   -- soft click
+local TOGGLE_SFX = 4590657391   -- smooth toggle
+local OPEN_SFX   = 3719010497   -- premium open whoosh
+local CLOSE_SFX  = 3714960718   -- smooth close
+local LOAD_SFX   = 1837359575   -- load complete
+local START_SFX  = 4612740061   -- attack start
+
+-- [[ SLANGS (default spam list) ]]
+local slangs = {
+    "TMX MEH BLAZE", "TMX MEH FIRE 🔥", "FYTER BNEGA? 🤣", "TMX MEH GOAT", "TMX MEH SALT",
+    "TMX MEH ROD", "TMX MEH UNIVERSE", "TMX MEH SOFA", "TMX MEH KEYBOARD", "TMX MEH SNIPER",
+    "LEAVE KR DE", "TMX MEH MONITOR", "TMX MEH TABLE", "TMX MEH GALAXLY", "TMX MEH MUSHROOM",
+    "TMX MEH STONE KE", "TMX MEH BOT", "TMX MEH CYLINDER", "TMX MEH KING", "TMX MEH VOID",
+    "TMX MEH REAPER", "TMX MEH GOD", "TMX MEH MASTER", "TMX MEH NOVA", "TMX MEH BEAST",
+    "TMX MEH LEGEND", "TMX MEH GHOST", "TMX MEH NINJA", "TMX MEH STAR", "TMX MEH MOON",
+    "TMX MEH NEON", "TMX MEH OMEGA", "TMX MEH STICK", "TMX MEH PAPER", "TMX MEH STYLE",
+    "TMX MEH ALPHA", "TMX MEH AK47 🔥", "TMX MEH MOUNTAIN 💀", "LEAVE MARDE 🤣",
+    "LALLU FIGHTER", "PIL GYA ITNI JALDI? 🤣", "TMX MEH DINO 😈", "TMKX MEH 🚫",
+    "H8R KI XUDAI START!", "TMKX MEH FUNNY", "TMKX ME SWORD", "TMKX ME CASH",
+    "TMKX MEH BAATE", "TMKX MEH PYTHON", "TMKX MEH GRAPHS", "TMKX MEH GALAXY",
+    "TMKX MEH SOFTWARE", "TMKX MEH HARDWARE", "TMKX MEH EXCEL", "TMKX MEH MILKY-WAY",
+    "TMKX MEH FORMULA", "TMKX MEH PIANO", "TMKX MEH INSTRUMENTS", "TMKX MEH EARTHQUAKE",
+    "TMKX MEH ACID RAIN", "TMKX MEH POLLUTION", "TMKX MEH DELTA", "TMKX MEH STORM",
+    "TMKX MEH BONES", "TMKX MEH PEACE", "TMKX MEH ANIME", "TMKX MEH HEAT", "TMKX MEH ICE",
+    "TMKX MEH SCRIPT", "TMKX MEH MECHANICS", "TMKX MEH NEURONS", "TMKX MEH MUSIC",
+    "USE AXER SPAMMER V3 (WR4ITH) 👑"
+}
+
+-- [[ ANTI-TAG SPAM SYSTEM (from intro) ]]
+local PATTERN_CYCLE = {
+    "`", "/=-=", "Z_", "Q_", "@", "#", "*", "%", "@", "/-", "", "P_",
+}
+local currentPatternIndex = 1
+local function formatSpamMessage(msg, mode)
+    -- mode: "SPAM", "CLEAN_SPAM", "LOADED", or nil (default SPAM)
+    local pattern = PATTERN_CYCLE[currentPatternIndex]
+    currentPatternIndex = (currentPatternIndex % #PATTERN_CYCLE) + 1
+    local finalMsg = ""
+    local rawWords = {"AXER PAPA", "AXER PAPA BOL", "AXER SPAMMER USE KR", "BURGER", "GRAVITY", "QATAR", "JUICE", "ORANGE", "BALL", "SNAKE", "APPLE", "VENOM", "LUN", "BUS", "CAR", "PLANE", "QUANTUM"}
+
+    if mode == "SPAM" then
+        local randomWord = rawWords[math.random(1, #rawWords)]
+        local core = ""
+        if randomWord == "AXER PAPA BOL" or randomWord == "AXER SPAMMER USE KR" then
+            core = (msg ~= "" and (msg .. " ") or "") .. randomWord
+        else
+            core = (msg ~= "" and (msg .. " ") or "") .. "TMKX ME " .. randomWord
+        end
+        local pStr = ""
+        while (#pStr + #pattern) <= (197 - #core) do pStr = pStr .. pattern end
+        finalMsg = pStr .. " " .. core
+    elseif mode == "CLEAN_SPAM" then
+        local pStr = ""
+        while (#pStr + #pattern) <= (197 - #msg) do pStr = pStr .. pattern end
+        finalMsg = pStr .. " " .. msg
+    elseif mode == "LOADED" then
+        local lpPattern = " /=-=_"
+        local pStr = ""
+        while (#pStr + #lpPattern) <= (197 - #msg) do pStr = pStr .. lpPattern end
+        finalMsg = pStr .. " " .. msg
+    else
+        finalMsg = msg
+    end
+    return finalMsg
+end
+
+-- [[ ANTI-LAG SYSTEM ]]
+local function applyAntiLag()
+    Lighting.GlobalShadows = false
+    Lighting.FogEnd = 1e10
+    Lighting.Brightness = 1
+    local Terrain = workspace:FindFirstChildOfClass("Terrain")
+    if Terrain then
+        Terrain.WaterWaveSize = 0
+        Terrain.WaterWaveSpeed = 0
+        Terrain.WaterReflectance = 0
+        Terrain.WaterTransparency = 0
+    end
+    for _, v in pairs(game:GetDescendants()) do
+        if v:IsA("ParticleEmitter") or v:IsA("Trail") or v:IsA("Smoke") or v:IsA("Fire") then
+            v.Enabled = false
+        end
+    end
+end
+applyAntiLag()
+
+-- [[ ANTI-COPY FEATURE for Brookhaven ]]
+local function setupAntiCopy()
+    spawn(function()
+        while wait(2) do
+            if antiCopyEnabled and game.PlaceId == 4924922222 then -- Brookhaven ID
+                pcall(function()
+                    local character = lp.Character
+                    if character then
+                        for _, v in pairs(character:GetChildren()) do
+                            if v:IsA("Accessory") or v:IsA("Shirt") or v:IsA("Pants") then
+                                local clone = v:Clone()
+                                v:Destroy()
+                                clone.Parent = character
+                            end
+                        end
+                        local humanoid = character:FindFirstChild("Humanoid")
+                        if humanoid then
+                            humanoid:ApplyDescription(lp.CharacterAppearance)
+                        end
+                    end
+                end)
+            end
+        end
+    end)
+end
+
+-- [[ ANTI-FLING PROTECTION ]]
+local function setupAntiFling()
+    if antiFlingConnection then
+        antiFlingConnection:Disconnect()
+    end
+    
+    antiFlingConnection = RunService.Heartbeat:Connect(function()
+        if antiFlingEnabled and lp.Character then
+            local hrp = lp.Character:FindFirstChild("HumanoidRootPart")
+            local humanoid = lp.Character:FindFirstChild("Humanoid")
+            
+            if hrp and humanoid and humanoid.Health > 0 then
+                local currentPos = hrp.Position
+                
+                if lastPosition then
+                    local velocity = (currentPos - lastPosition).Magnitude
+                    if velocity > 200 and not flingDetected then
+                        flingDetected = true
+                        hrp.CFrame = CFrame.new(lastPosition)
+                        humanoid.PlatformStand = false
+                        if hrp:FindFirstChild("BodyVelocity") then
+                            hrp.BodyVelocity:Destroy()
+                        end
+                        pcall(function()
+                            game:GetService("StarterGui"):SetCore("SendNotification", {
+                                Title = "⚠️ ANTI-FLING",
+                                Text = "Fling detected! Teleported to safe position.",
+                                Duration = 2
+                            })
+                        end)
+                        wait(0.5)
+                        flingDetected = false
+                    elseif velocity < 50 then
+                        flingDetected = false
+                        if humanoid.Sit == false and humanoid.FloorMaterial ~= Enum.Material.Air then
+                            lastPosition = currentPos
+                        end
+                    end
+                else
+                    lastPosition = currentPos
+                end
+            end
+        end
+    end)
+end
+
+-- [[ CHAT FUNCTION with anti-tag formatting ]]
+local function SendChatMessage(msg, mode)
+    local formatted = formatSpamMessage(msg, mode or "SPAM")
+    local tcs = TextChatService
+    if tcs.ChatVersion == Enum.ChatVersion.TextChatService then
+        local channel = tcs.TextChannels:FindFirstChild("RBXGeneral")
+        if channel then channel:SendAsync(formatted) end
+    else
+        local chatEvent = ReplicatedStorage:FindFirstChild("DefaultChatSystemChatEvents")
+        if chatEvent and chatEvent:FindFirstChild("SayMessageRequest") then
+            chatEvent.SayMessageRequest:FireServer(formatted, "All")
+        end
+    end
+end
+
+-- [[ DRAGGABLE ]]
+local function makeDraggable(topbar, object)
+    local dragging, dragInput, dragStart, startPos
+    topbar.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = true; dragStart = input.Position; startPos = object.Position
+        end
+    end)
+    topbar.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+            dragInput = input
+        end
+    end)
+    UserInputService.InputChanged:Connect(function(input)
+        if input == dragInput and dragging then
+            local delta = input.Position - dragStart
+            object.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+        end
+    end)
+    topbar.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = false
+        end
+    end)
+end
+
+-- ============================================
+-- [[ SCREEN GUI (Ice/Frosty Theme) ]]
+-- ============================================
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "AXER_HUB_V3"
+ScreenGui.Parent = ParentUI
+ScreenGui.ResetOnSpawn = false
+
+-- ============================================
+-- [[ LOADING SCREEN ]]
+-- ============================================
+local LoadingFrame = Instance.new("Frame", ScreenGui)
+LoadingFrame.Size = UDim2.new(0, 300, 0, 100)
+LoadingFrame.Position = UDim2.new(0.5, -150, 0.5, -50)
+LoadingFrame.BackgroundColor3 = Color3.fromRGB(200, 230, 255) -- frosty ice
+LoadingFrame.BackgroundTransparency = 1
+Instance.new("UICorner", LoadingFrame).CornerRadius = UDim.new(0, 12)
+local LoadingStroke = Instance.new("UIStroke", LoadingFrame)
+LoadingStroke.Thickness = 2; LoadingStroke.Color = Color3.fromRGB(135, 206, 235) -- sky blue
+
+local LoadingTitle = Instance.new("TextLabel", LoadingFrame)
+LoadingTitle.Text = "❄️ AXER BOSS SPAMMER V3 ❄️"
+LoadingTitle.Size = UDim2.new(1, 0, 0, 30); LoadingTitle.Position = UDim2.new(0, 0, 0.08, 0)
+LoadingTitle.TextColor3 = Color3.new(0,0,0); LoadingTitle.Font = Enum.Font.GothamBold
+LoadingTitle.TextSize = 16; LoadingTitle.BackgroundTransparency = 1
+LoadingTitle.TextTransparency = 1
+
+local WelcomeLabel = Instance.new("TextLabel", LoadingFrame)
+WelcomeLabel.Text = "Welcome, " .. lp.Name
+WelcomeLabel.Size = UDim2.new(1, 0, 0, 20); WelcomeLabel.Position = UDim2.new(0, 0, 0.36, 0)
+WelcomeLabel.TextColor3 = Color3.fromRGB(30,30,30); WelcomeLabel.Font = Enum.Font.GothamMedium
+WelcomeLabel.TextSize = 12; WelcomeLabel.BackgroundTransparency = 1
+WelcomeLabel.TextTransparency = 1
+
+local ProgressBarBack = Instance.new("Frame", LoadingFrame)
+ProgressBarBack.Size = UDim2.new(0.8, 0, 0, 6); ProgressBarBack.Position = UDim2.new(0.1, 0, 0.62, 0)
+ProgressBarBack.BackgroundColor3 = Color3.fromRGB(180, 210, 230)
+ProgressBarBack.BackgroundTransparency = 1
+Instance.new("UICorner", ProgressBarBack)
+
+local ProgressBarFill = Instance.new("Frame", ProgressBarBack)
+ProgressBarFill.Size = UDim2.new(0, 0, 1, 0)
+ProgressBarFill.BackgroundColor3 = Color3.fromRGB(135, 206, 235)
+Instance.new("UICorner", ProgressBarFill)
+
+local LoadingPercent = Instance.new("TextLabel", LoadingFrame)
+LoadingPercent.Text = "0%"; LoadingPercent.Size = UDim2.new(1, 0, 0, 18)
+LoadingPercent.Position = UDim2.new(0, 0, 0.77, 0); LoadingPercent.TextColor3 = Color3.new(0,0,0)
+LoadingPercent.Font = Enum.Font.GothamBold; LoadingPercent.TextSize = 12
+LoadingPercent.BackgroundTransparency = 1; LoadingPercent.TextTransparency = 1
+
+-- Loading fade in
+TweenService:Create(LoadingFrame, TweenInfo.new(0.5, Enum.EasingStyle.Quart), {BackgroundTransparency = 0}):Play()
+TweenService:Create(LoadingTitle, TweenInfo.new(0.5, Enum.EasingStyle.Quart), {TextTransparency = 0}):Play()
+TweenService:Create(WelcomeLabel, TweenInfo.new(0.6, Enum.EasingStyle.Quart), {TextTransparency = 0}):Play()
+TweenService:Create(ProgressBarBack, TweenInfo.new(0.5, Enum.EasingStyle.Quart), {BackgroundTransparency = 0}):Play()
+TweenService:Create(LoadingPercent, TweenInfo.new(0.5, Enum.EasingStyle.Quart), {TextTransparency = 0}):Play()
+
+-- ============================================
+-- [[ MAIN FRAME (wider, shorter, transparent) ]]
+-- ============================================
+local frame = Instance.new("Frame", ScreenGui)
+frame.Size = UDim2.new(0, 320, 0, 370)  -- wider (320) and shorter (370)
+frame.Position = UDim2.new(0.5, -160, 0.5, -185)
+frame.BackgroundColor3 = Color3.fromRGB(200, 230, 255) -- frosty ice
+frame.BackgroundTransparency = 0.15  -- semi-transparent for glassy look
+frame.Visible = false
+Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 15)
+local mainStroke = Instance.new("UIStroke", frame)
+mainStroke.Thickness = 2
+mainStroke.Color = Color3.fromRGB(135, 206, 235) -- sky blue
+
+-- [[ OPEN / CLOSE ANIMATION ]]
+local animating = false
+local function OpenGUI()
+    if animating then return end
+    animating = true
+    playSfx(OPEN_SFX, 0.7)
+    frame.Visible = true
+    frame.Size = UDim2.new(0, 320, 0, 0)
+    frame.Position = UDim2.new(0.5, -160, 0.5, 0)
+    frame.BackgroundTransparency = 0.8
+    TweenService:Create(frame, TweenInfo.new(0.45, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
+        Size = UDim2.new(0, 320, 0, 370),
+        Position = UDim2.new(0.5, -160, 0.5, -185),
+        BackgroundTransparency = 0.15
+    }):Play()
+    task.wait(0.45)
+    animating = false
+    guiOpen = true
+end
+
+local function CloseGUI()
+    if animating then return end
+    animating = true
+    playSfx(CLOSE_SFX, 0.6)
+    TweenService:Create(frame, TweenInfo.new(0.35, Enum.EasingStyle.Quart, Enum.EasingDirection.In), {
+        Size = UDim2.new(0, 320, 0, 0),
+        Position = UDim2.new(0.5, -160, 0.5, 0),
+        BackgroundTransparency = 0.8
+    }):Play()
+    task.wait(0.35)
+    frame.Visible = false
+    animating = false
+    guiOpen = false
+end
+
+-- [[ TITLE BAR ]]
+local title = Instance.new("TextLabel", frame)
+title.Size = UDim2.new(1, 0, 0, 32)
+title.Text = "❄️ AXER SPAMMER V3 ❄️"
+title.TextColor3 = Color3.new(0,0,0)
+title.BackgroundColor3 = Color3.fromRGB(180, 210, 230)
+title.Font = Enum.Font.GothamBold; title.TextSize = 13
+Instance.new("UICorner", title)
+makeDraggable(title, frame)
+
+-- [[ TAB BAR ]]
+local TabBar = Instance.new("Frame", frame)
+TabBar.Size = UDim2.new(1, 0, 0, 26); TabBar.Position = UDim2.new(0, 0, 0, 32)
+TabBar.BackgroundColor3 = Color3.fromRGB(190, 215, 235); TabBar.BorderSizePixel = 0
+
+local tabIndicator = Instance.new("Frame", TabBar)
+tabIndicator.Size = UDim2.new(0.2, 0, 0, 2)
+tabIndicator.Position = UDim2.new(0, 0, 1, -2)
+tabIndicator.BackgroundColor3 = Color3.fromRGB(135, 206, 235)
+tabIndicator.BorderSizePixel = 0
+Instance.new("UICorner", tabIndicator)
+
+local function CreateTab(name, xPos, w)
+    local btn = Instance.new("TextButton", TabBar)
+    btn.Size = UDim2.new(w, 0, 1, 0); btn.Position = UDim2.new(xPos, 0, 0, 0)
+    btn.Text = name; btn.Font = Enum.Font.GothamBold
+    btn.TextColor3 = Color3.fromRGB(40,40,40); btn.TextSize = 10; btn.BackgroundTransparency = 1
+    return btn
+end
+
+local AttackTabBtn = CreateTab("ATTACK",  0,    0.25)
+local SetTabBtn    = CreateTab("SETTINGS",0.25, 0.25)
+local ThemeTabBtn  = CreateTab("THEMES",  0.50, 0.25)
+local InfoTabBtn   = CreateTab("INFO",    0.75, 0.25)
+
+AttackTabBtn.TextColor3 = Color3.new(0,0,0)
+
+-- [[ PAGES ]]
+local Pages = Instance.new("Frame", frame)
+Pages.Size = UDim2.new(1, 0, 1, 0)  -- fills remaining space
+Pages.Position = UDim2.new(0, 0, 0, 58) -- title (32) + tab (26) = 58
+Pages.BackgroundTransparency = 1; Pages.ClipsDescendants = true
+
+local function CreatePage()
+    local p = Instance.new("CanvasGroup", Pages)
+    p.Size = UDim2.new(1, 0, 1, 0); p.BackgroundTransparency = 1; p.Visible = false
+    return p
+end
+
+local AttackPage  = CreatePage(); AttackPage.Visible = true
+local SettingPage = CreatePage()
+local ThemePage   = CreatePage()
+local InfoPage    = CreatePage()
+local currentPage = AttackPage
+
+local tabBtns = {AttackTabBtn, SetTabBtn, ThemeTabBtn, InfoTabBtn}
+local tabXPos  = {0, 0.25, 0.50, 0.75}
+
+local function SwitchPage(newPage, btn, xPos)
+    if newPage == currentPage then return end
+    playSfx(CLICK_SFX, 0.4)
+    TweenService:Create(tabIndicator, TweenInfo.new(0.3, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
+        Position = UDim2.new(xPos, 0, 1, -2)
+    }):Play()
+    for _, b in ipairs(tabBtns) do b.TextColor3 = Color3.fromRGB(40,40,40) end
+    btn.TextColor3 = Color3.new(0,0,0)
+
+    local old = currentPage; currentPage = newPage
+    newPage.Position = UDim2.new(1, 0, 0, 0); newPage.Visible = true
+    TweenService:Create(old, TweenInfo.new(0.35, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Position = UDim2.new(-1,0,0,0)}):Play()
+    TweenService:Create(newPage, TweenInfo.new(0.35, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Position = UDim2.new(0,0,0,0)}):Play()
+    task.wait(0.35); old.Visible = false; old.Position = UDim2.new(0,0,0,0)
+end
+
+AttackTabBtn.MouseButton1Click:Connect(function() SwitchPage(AttackPage,  AttackTabBtn, 0)    end)
+SetTabBtn.MouseButton1Click:Connect(function()    SwitchPage(SettingPage, SetTabBtn,    0.25) end)
+ThemeTabBtn.MouseButton1Click:Connect(function()  SwitchPage(ThemePage,   ThemeTabBtn,  0.50) end)
+InfoTabBtn.MouseButton1Click:Connect(function()   SwitchPage(InfoPage,    InfoTabBtn,   0.75) end)
+
+-- ============================================
+-- [[ HELPER FUNCTIONS FOR UI ]]
+-- ============================================
+local function MakeBox(parent, placeholder, yPos)
+    local b = Instance.new("TextBox", parent)
+    b.Size = UDim2.new(0.9, 0, 0, 30)
+    b.Position = UDim2.new(0.05, 0, 0, yPos)
+    b.PlaceholderText = placeholder
+    b.BackgroundColor3 = Color3.fromRGB(220, 240, 255)
+    b.TextColor3 = Color3.new(0,0,0)
+    b.Font = Enum.Font.GothamMedium; b.TextSize = 12
+    Instance.new("UICorner", b)
+    return b
+end
+
+local function MakeBtn(parent, text, yPos, bgColor, h)
+    local b = Instance.new("TextButton", parent)
+    b.Size = UDim2.new(0.9, 0, 0, h or 34)
+    b.Position = UDim2.new(0.05, 0, 0, yPos)
+    b.Text = text; b.BackgroundColor3 = bgColor
+    b.TextColor3 = Color3.new(0,0,0); b.Font = Enum.Font.GothamBold; b.TextSize = 12
+    Instance.new("UICorner", b)
+    b.MouseButton1Down:Connect(function()
+        TweenService:Create(b, TweenInfo.new(0.08, Enum.EasingStyle.Quad), {
+            Size = UDim2.new(0.87, 0, 0, (h or 34) - 3)
+        }):Play()
+        playSfx(CLICK_SFX, 0.35)
+    end)
+    b.MouseButton1Up:Connect(function()
+        TweenService:Create(b, TweenInfo.new(0.15, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
+            Size = UDim2.new(0.9, 0, 0, h or 34)
+        }):Play()
+    end)
+    return b
+end
+
+local function MakeToggle(parent, text, yPos, callback, defaultValue)
+    local lbl = Instance.new("TextLabel", parent)
+    lbl.Text = text; lbl.Size = UDim2.new(0.6, 0, 0, 28)
+    lbl.Position = UDim2.new(0.05, 0, 0, yPos); lbl.TextColor3 = Color3.new(0,0,0)
+    lbl.Font = Enum.Font.GothamBold; lbl.TextSize = 11; lbl.BackgroundTransparency = 1
+    lbl.TextXAlignment = Enum.TextXAlignment.Left
+
+    local tog = Instance.new("TextButton", parent)
+    tog.Text = "OFF"; tog.Size = UDim2.new(0, 48, 0, 22)
+    tog.Position = UDim2.new(1, -56, 0, yPos + 3)
+    tog.BackgroundColor3 = Color3.fromRGB(180, 0, 0); tog.TextColor3 = Color3.new(1,1,1)
+    tog.Font = Enum.Font.GothamBold; tog.TextSize = 11
+    Instance.new("UICorner", tog)
+
+    local state = defaultValue or false
+    if state then
+        tog.Text = "ON"
+        tog.BackgroundColor3 = Color3.fromRGB(0, 180, 0)
+    end
+    
+    tog.MouseButton1Down:Connect(function()
+        TweenService:Create(tog, TweenInfo.new(0.07, Enum.EasingStyle.Quad), {
+            Size = UDim2.new(0, 42, 0, 18)
+        }):Play()
+        playSfx(TOGGLE_SFX, 0.5)
+    end)
+    tog.MouseButton1Up:Connect(function()
+        TweenService:Create(tog, TweenInfo.new(0.15, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
+            Size = UDim2.new(0, 48, 0, 22)
+        }):Play()
+    end)
+    tog.MouseButton1Click:Connect(function()
+        state = not state
+        tog.Text = state and "ON" or "OFF"
+        TweenService:Create(tog, TweenInfo.new(0.2, Enum.EasingStyle.Quart), {
+            BackgroundColor3 = state and Color3.fromRGB(0, 180, 0) or Color3.fromRGB(180, 0, 0)
+        }):Play()
+        callback(state)
+    end)
+    return function() return state end
+end
+
+-- ============================================
+-- [[ ATTACK PAGE ]]
+-- ============================================
+local AttackScroll = Instance.new("ScrollingFrame", AttackPage)
+AttackScroll.Size = UDim2.new(1,0,1,0); AttackScroll.BackgroundTransparency = 1
+AttackScroll.ScrollBarThickness = 2; AttackScroll.CanvasSize = UDim2.new(0,0,0,430) -- slightly reduced
+
+local nameBox  = MakeBox(AttackScroll, "Target Name...", 8)
+local delayBox = MakeBox(AttackScroll, "Delay seconds (default: 2)", 46)
+local styleBox = MakeBox(AttackScroll, "Mode: SPAM / CLEAN / LOADED", 84)
+
+local attackStart = MakeBtn(AttackScroll, "START ATTACK 🔥", 126, Color3.fromRGB(135, 206, 235), 36)
+local attackStop  = MakeBtn(AttackScroll, "STOP ATTACK",     170, Color3.fromRGB(200, 80, 80), 36)
+
+local customModeToggle = MakeToggle(AttackScroll, "CUSTOM SPAM MODE", 216, function(v) 
+    spamMode = v and "custom" or "default"
+    if spamMode == "custom" then
+        customMessageBox.Visible = true
+        customMessageList.Visible = true
+        addCustomBtn.Visible = true
+        clearCustomBtn.Visible = true
+    else
+        customMessageBox.Visible = false
+        customMessageList.Visible = false
+        addCustomBtn.Visible = false
+        clearCustomBtn.Visible = false
+    end
+end, false)
+
+local customMessageBox = MakeBox(AttackScroll, "Enter custom message...", 254)
+customMessageBox.Visible = false
+
+local addCustomBtn = MakeBtn(AttackScroll, "➕ ADD MESSAGE", 296, Color3.fromRGB(100, 150, 220), 28)
+addCustomBtn.Visible = false
+
+local customMessageList = Instance.new("TextLabel", AttackScroll)
+customMessageList.Size = UDim2.new(0.9, 0, 0, 44)
+customMessageList.Position = UDim2.new(0.05, 0, 0, 332)
+customMessageList.BackgroundColor3 = Color3.fromRGB(220, 240, 255)
+customMessageList.BackgroundTransparency = 0.4
+customMessageList.TextColor3 = Color3.fromRGB(0,0,0)
+customMessageList.Font = Enum.Font.GothamMedium
+customMessageList.TextSize = 10
+customMessageList.TextWrapped = true
+customMessageList.TextXAlignment = Enum.TextXAlignment.Left
+customMessageList.TextYAlignment = Enum.TextYAlignment.Top
+customMessageList.Text = "Custom Messages:\n(Click + to add, press CLEAR to remove all)"
+customMessageList.Visible = false
+Instance.new("UICorner", customMessageList)
+
+local clearCustomBtn = MakeBtn(AttackScroll, "🗑️ CLEAR ALL MESSAGES", 386, Color3.fromRGB(200, 120, 80), 28)
+clearCustomBtn.Visible = false
+
+local function updateCustomMessageDisplay()
+    if #customMessages == 0 then
+        customMessageList.Text = "Custom Messages:\n(Click + to add, press CLEAR to remove all)"
+    else
+        local displayText = "Custom Messages:\n"
+        for i, msg in ipairs(customMessages) do
+            local shortMsg = #msg > 25 and msg:sub(1, 22) .. "..." or msg
+            displayText = displayText .. i .. ". " .. shortMsg .. "\n"
+        end
+        customMessageList.Text = displayText
+    end
+end
+
+addCustomBtn.MouseButton1Click:Connect(function()
+    local newMsg = customMessageBox.Text
+    if newMsg and newMsg ~= "" and newMsg ~= "Enter custom message..." then
+        table.insert(customMessages, newMsg)
+        customMessageBox.Text = ""
+        updateCustomMessageDisplay()
+        playSfx(CLICK_SFX, 0.4)
+    end
+end)
+
+clearCustomBtn.MouseButton1Click:Connect(function()
+    customMessages = {}
+    updateCustomMessageDisplay()
+    playSfx(CLICK_SFX, 0.5)
+end)
+
+-- ============================================
+-- [[ SETTINGS PAGE ]]
+-- ============================================
+local SettingScroll = Instance.new("ScrollingFrame", SettingPage)
+SettingScroll.Size = UDim2.new(1, 0, 1, 0); SettingScroll.BackgroundTransparency = 1
+SettingScroll.ScrollBarThickness = 2; SettingScroll.CanvasSize = UDim2.new(0,0,0,360)
+
+local function CreateSettingRow(text, yPos, callback)
+    local lbl = Instance.new("TextLabel", SettingScroll)
+    lbl.Text = text; lbl.Size = UDim2.new(0.6, 0, 0, 28)
+    lbl.Position = UDim2.new(0.05, 0, 0, yPos); lbl.TextColor3 = Color3.new(0,0,0)
+    lbl.Font = Enum.Font.GothamBold; lbl.TextSize = 11; lbl.BackgroundTransparency = 1
+    lbl.TextXAlignment = Enum.TextXAlignment.Left
+
+    local tog = Instance.new("TextButton", SettingScroll)
+    tog.Text = "OFF"; tog.Size = UDim2.new(0, 48, 0, 22)
+    tog.Position = UDim2.new(1, -56, 0, yPos + 3)
+    tog.BackgroundColor3 = Color3.fromRGB(180, 0, 0); tog.TextColor3 = Color3.new(1,1,1)
+    tog.Font = Enum.Font.GothamBold; tog.TextSize = 11
+    Instance.new("UICorner", tog)
+
+    local state = false
+    tog.MouseButton1Down:Connect(function()
+        TweenService:Create(tog, TweenInfo.new(0.07, Enum.EasingStyle.Quad), {
+            Size = UDim2.new(0, 42, 0, 18)
+        }):Play()
+        playSfx(TOGGLE_SFX, 0.5)
+    end)
+    tog.MouseButton1Up:Connect(function()
+        TweenService:Create(tog, TweenInfo.new(0.15, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
+            Size = UDim2.new(0, 48, 0, 22)
+        }):Play()
+    end)
+    tog.MouseButton1Click:Connect(function()
+        state = not state
+        tog.Text = state and "ON" or "OFF"
+        TweenService:Create(tog, TweenInfo.new(0.2, Enum.EasingStyle.Quart), {
+            BackgroundColor3 = state and Color3.fromRGB(0, 180, 0) or Color3.fromRGB(180, 0, 0)
+        }):Play()
+        callback(state)
+    end)
+end
+
+CreateSettingRow("ANTI-AFK",    6,  function(v) antiAfkEnabled = v end)
+CreateSettingRow("SPEED BOOST", 40,  function(v) speedEnabled   = v end)
+CreateSettingRow("JUMP BOOST",  74, function(v) jumpEnabled    = v end)
+CreateSettingRow("NOCLIP",      108, function(v) noclipEnabled  = v end)
+CreateSettingRow("NOSIT",       142, function(v) nositEnabled   = v end)
+CreateSettingRow("🛡️ ANTI-COPY (BH)", 176, function(v) 
+    antiCopyEnabled = v
+    if v then setupAntiCopy() end
+end)
+CreateSettingRow("🌀 ANTI-FLING", 210, function(v) 
+    antiFlingEnabled = v
+    if v then setupAntiFling() end
+end)
+CreateSettingRow("🚫 ANTI-TAG (always ON)", 244, function(v) end) -- placeholder
+
+-- [[ SETTINGS LOGIC ]]
+lp.Idled:Connect(function()
+    if antiAfkEnabled then
+        VirtualUser:Button2Down(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
+        task.wait(1)
+        VirtualUser:Button2Up(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
+    end
+end)
+
+RunService.RenderStepped:Connect(function()
+    if lp.Character then
+        local hum = lp.Character:FindFirstChild("Humanoid")
+        if hum then
+            hum.WalkSpeed = speedEnabled and 100 or 16
+            hum.JumpPower = jumpEnabled and 150 or 50
+            if nositEnabled then hum.Sit = false end
+        end
+        if noclipEnabled then
+            for _, v in pairs(lp.Character:GetDescendants()) do
+                if v:IsA("BasePart") then v.CanCollide = false end
+            end
+        end
+    end
+end)
+
+-- ============================================
+-- [[ THEME PAGE (Ice/Frosty plus other themes) ]]
+-- ============================================
+local ThemeContainer = Instance.new("ScrollingFrame", ThemePage)
+ThemeContainer.Size = UDim2.new(0.9, 0, 1, -10); ThemeContainer.Position = UDim2.new(0.05, 0, 0, 5)
+ThemeContainer.BackgroundTransparency = 1; ThemeContainer.ScrollBarThickness = 2
+ThemeContainer.CanvasSize = UDim2.new(0,0,0,450)
+local ThemeLayout = Instance.new("UIListLayout", ThemeContainer); ThemeLayout.Padding = UDim.new(0, 5)
+
+local themeList = {
+    {name = "❄️ Frosty Ice",  color = Color3.fromRGB(200, 230, 255), stroke = Color3.fromRGB(135, 206, 235)},
+    {name = "💎 Royal Navy",    color = Color3.fromRGB(10, 20, 55), stroke = Color3.fromRGB(70, 130, 180)},
+    {name = "🔥 Crimson Flame", color = Color3.fromRGB(55, 10, 15), stroke = Color3.fromRGB(200, 50, 50)},
+    {name = "🌙 Midnight Black",color = Color3.fromRGB(8, 8, 12), stroke = Color3.fromRGB(100, 100, 100)},
+    {name = "🍃 Emerald Mist",  color = Color3.fromRGB(15, 40, 20), stroke = Color3.fromRGB(60, 180, 60)},
+    {name = "💜 Royal Purple",  color = Color3.fromRGB(45, 10, 55), stroke = Color3.fromRGB(150, 80, 200)},
+    {name = "⭐ Golden Glory",  color = Color3.fromRGB(55, 45, 10), stroke = Color3.fromRGB(255, 215, 0)},
+    {name = "🌊 Ocean Depth",   color = Color3.fromRGB(10, 35, 70), stroke = Color3.fromRGB(0, 150, 200)},
+    {name = "🎨 Rose Gold",     color = Color3.fromRGB(75, 45, 55), stroke = Color3.fromRGB(200, 150, 160)},
+    {name = "❄️ Frost White",   color = Color3.fromRGB(220, 230, 240), stroke = Color3.fromRGB(180, 200, 220)},
+    {name = "🍊 Sunset Orange", color = Color3.fromRGB(70, 35, 15), stroke = Color3.fromRGB(255, 100, 50)},
+    {name = "💚 Neon Mint",     color = Color3.fromRGB(20, 65, 45), stroke = Color3.fromRGB(0, 255, 100)},
+}
+
+for _, t in ipairs(themeList) do
+    local tBtn = Instance.new("TextButton", ThemeContainer)
+    tBtn.Size = UDim2.new(1, 0, 0, 32)
+    tBtn.Text = t.name
+    tBtn.BackgroundColor3 = t.color
+    tBtn.TextColor3 = (t.color.R + t.color.G + t.color.B) / 3 > 0.5 and Color3.new(0,0,0) or Color3.new(1,1,1)
+    tBtn.Font = Enum.Font.GothamBold
+    tBtn.TextSize = 12
+    tBtn.AutoButtonColor = false
+    Instance.new("UICorner", tBtn).CornerRadius = UDim.new(0, 8)
+    
+    tBtn.MouseEnter:Connect(function()
+        TweenService:Create(tBtn, TweenInfo.new(0.2, Enum.EasingStyle.Quad), {
+            Size = UDim2.new(1, 4, 0, 36)
+        }):Play()
+    end)
+    tBtn.MouseLeave:Connect(function()
+        TweenService:Create(tBtn, TweenInfo.new(0.2, Enum.EasingStyle.Quad), {
+            Size = UDim2.new(1, 0, 0, 32)
+        }):Play()
+    end)
+    tBtn.MouseButton1Down:Connect(function()
+        TweenService:Create(tBtn, TweenInfo.new(0.07, Enum.EasingStyle.Quad), {
+            Size = UDim2.new(0.98, 0, 0, 28)
+        }):Play()
+        playSfx(CLICK_SFX, 0.3)
+    end)
+    tBtn.MouseButton1Up:Connect(function()
+        TweenService:Create(tBtn, TweenInfo.new(0.15, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
+            Size = UDim2.new(1, 0, 0, 32)
+        }):Play()
+    end)
+    tBtn.MouseButton1Click:Connect(function()
+        frame.BackgroundColor3 = t.color
+        mainStroke.Color = t.stroke
+        pcall(function()
+            game:GetService("StarterGui"):SetCore("SendNotification", {
+                Title = "🎨 Theme Applied",
+                Text = t.name .. " theme activated!",
+                Duration = 2
+            })
+        end)
+    end)
+end
+
+-- ============================================
+-- [[ INFO PAGE ]]
+-- ============================================
+local InfoScroll = Instance.new("ScrollingFrame", InfoPage)
+InfoScroll.Size = UDim2.new(1,0,1,0); InfoScroll.BackgroundTransparency = 1
+InfoScroll.ScrollBarThickness = 2; InfoScroll.CanvasSize = UDim2.new(0,0,0,300)
+
+local function MakeInfoLabel(parent, text, yPos, col)
+    local l = Instance.new("TextLabel", parent)
+    l.Text = text; l.Size = UDim2.new(0.9, 0, 0, 22)
+    l.Position = UDim2.new(0.05, 0, 0, yPos)
+    l.TextColor3 = col or Color3.new(0,0,0)
+    l.Font = Enum.Font.GothamMedium; l.TextSize = 12; l.BackgroundTransparency = 1
+    l.TextXAlignment = Enum.TextXAlignment.Left
+    return l
+end
+
+MakeInfoLabel(InfoScroll, "👑 Developer: Axer", 8, Color3.fromRGB(0,0,0))
+MakeInfoLabel(InfoScroll, "🤝 Co-Developer: Xdemic", 34, Color3.fromRGB(40,40,40))
+MakeInfoLabel(InfoScroll, "💬 Discord: Mickeyyy009", 60, Color3.fromRGB(0, 100, 200))
+MakeInfoLabel(InfoScroll, "🎮 Roblox: erennn0779", 86, Color3.fromRGB(200, 50, 50))
+MakeInfoLabel(InfoScroll, "📦 Version: V3 Ultimate", 112, Color3.fromRGB(0, 150, 0))
+MakeInfoLabel(InfoScroll, "🛡️ Features:", 138, Color3.fromRGB(0,0,0))
+MakeInfoLabel(InfoScroll, "   - Anti-Lag (Always ON)", 162, Color3.fromRGB(50,50,50))
+MakeInfoLabel(InfoScroll, "   - Anti-Tag Spam (Always ON)", 186, Color3.fromRGB(50,50,50))
+MakeInfoLabel(InfoScroll, "   - Anti-Fling", 210, Color3.fromRGB(50,50,50))
+MakeInfoLabel(InfoScroll, "   - Anti-Copy (Brookhaven)", 234, Color3.fromRGB(50,50,50))
+MakeInfoLabel(InfoScroll, "   - Speed / Jump / Noclip", 258, Color3.fromRGB(50,50,50))
+MakeInfoLabel(InfoScroll, "   - Custom Themes", 282, Color3.fromRGB(50,50,50))
+
+-- ============================================
+-- [[ TOGGLE BUTTON (X) ]]
+-- ============================================
+local float = Instance.new("TextButton", ScreenGui)
+float.Size = UDim2.new(0, 42, 0, 42)
+float.Position = UDim2.new(0.02, 0, 0.45, 0)
+float.Text = "X"; float.Font = Enum.Font.GothamBold
+float.TextColor3 = Color3.new(0,0,0); float.TextSize = 20
+float.BackgroundColor3 = Color3.fromRGB(200, 230, 255)
+Instance.new("UICorner", float).CornerRadius = UDim.new(1, 0)
+local floatStroke = Instance.new("UIStroke", float); floatStroke.Thickness = 2; floatStroke.Color = Color3.fromRGB(135, 206, 235)
+makeDraggable(float, float)
+
+float.MouseButton1Down:Connect(function()
+    TweenService:Create(float, TweenInfo.new(0.08, Enum.EasingStyle.Quad), {
+        Size = UDim2.new(0, 36, 0, 36)
+    }):Play()
+end)
+float.MouseButton1Up:Connect(function()
+    TweenService:Create(float, TweenInfo.new(0.2, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
+        Size = UDim2.new(0, 42, 0, 42)
+    }):Play()
+end)
+float.MouseButton1Click:Connect(function()
+    if guiOpen then
+        CloseGUI()
+    else
+        OpenGUI()
+    end
+end)
+
+-- ============================================
+-- [[ RGB ENGINE (for borders) ]]
+-- ============================================
+task.spawn(function()
+    local h = 0
+    while true do
+        h = (h + 0.005) % 1
+        local c = Color3.fromHSV(h, 1, 1)
+        pcall(function() floatStroke.Color = c end)
+        pcall(function() float.TextColor3 = c end)
+        task.wait(0.05)
+    end
+end)
+
+-- [[ RP NAME + BIO (updated to Axer) ]]
+task.spawn(function()
+    task.wait(2)
+    pcall(function()
+        local RE = ReplicatedStorage:FindFirstChild("RE")
+        if RE and RE:FindFirstChild("1RPNam1eTex1t") then
+            RE["1RPNam1eTex1t"]:FireServer("RolePlayName", "❄️ Axer Spammer V3 ❄️")
+            task.wait(0.5)
+            RE["1RPNam1eTex1t"]:FireServer("RolePlayBio", "Welcome " .. lp.Name .. " | Axer ❄️")
+        end
+    end)
+end)
+
+-- ============================================
+-- [[ ADMIN COMMAND SYSTEM (from intro) ]]
+-- ============================================
+local Admins = {
+    ["VENUS_EDIT"] = true,
+    ["AX3RKABOT"] = true
+}
+
+local function processAdminCommand(sender, message)
+    local msg = message:lower()
+    local args = string.split(message, " ")
+
+    if msg:sub(1,9) == "!addadmin" then
+        if args[2] then Admins[args[2]] = true end
+    elseif msg:sub(1,12) == "!removeadmin" then
+        if args[2] then Admins[args[2]] = nil end
+    elseif msg == "!admins" then
+        local adminList = ""
+        for k,v in pairs(Admins) do adminList = adminList .. k .. " " end
+        print("Admins: " .. adminList)
+    elseif msg:sub(1,8) == "!target " then
+        local target = message:sub(9)
+        nameBox.Text = target
+    elseif msg == "!cleartarget" then
+        nameBox.Text = ""
+    elseif msg == "!start" then
+        attackStart.MouseButton1Click:Fire()
+    elseif msg == "!stop" then
+        attackStop.MouseButton1Click:Fire()
+    elseif msg:sub(1,7) == "!delay " then
+        local d = tonumber(args[2])
+        if d then delayBox.Text = tostring(d); delayTime = d end
+    elseif msg:sub(1,6) == "!mode " then
+        local m = args[2]
+        if m == "spam" then styleBox.Text = "SPAM"
+        elseif m == "clean" then styleBox.Text = "CLEAN"
+        elseif m == "loaded" then styleBox.Text = "LOADED" end
+    elseif msg:sub(1,5) == "!say " then
+        local txt = message:sub(6)
+        SendChatMessage(txt, "SPAM") -- default
+    elseif msg:sub(1,6) == "!spam " then
+        local txt = message:sub(7)
+        nameBox.Text = txt
+    elseif msg == "!rgb on" then
+        -- enable RGB for stroke (we already have it)
+    elseif msg == "!rgb off" then
+        -- disable RGB? we can set fixed color
+    elseif msg == "!hidegui" then
+        frame.Visible = false
+    elseif msg == "!showgui" then
+        frame.Visible = true
+    elseif msg == "!toggleui" then
+        frame.Visible = not frame.Visible
+    elseif msg == "!rejoin" then
+        game:GetService("TeleportService"):Teleport(game.PlaceId, sender)
+    elseif msg == "!kickme" then
+        sender:Kick("Kicked by admin")
+    elseif msg == "!reset" then
+        sender.Character:BreakJoints()
+    elseif msg == "!antilag" then
+        applyAntiLag()
+    elseif msg == "!fpsboost" then
+        settings().Rendering.QualityLevel = Enum.QualityLevel.Level01
+    elseif msg == "!info" then
+        print("AXER SPAMMER V3 | Admin:", sender.Name)
+    elseif msg == "!help" then
+        print("!start / !stop\n!target NAME\n!delay NUM\n!mode spam/clean/loaded\n!say TEXT\n!spam TEXT\n!rgb on/off\n!hidegui / !showgui\n!rejoin\n!kickme\n!reset\n!admins")
+    end
+end
+
+-- Hook chat for admin commands
+for _, plr in pairs(Players:GetPlayers()) do
+    plr.Chatted:Connect(function(msg)
+        if Admins[plr.Name] then
+            processAdminCommand(plr, msg)
+        end
+    end)
+end
+Players.PlayerAdded:Connect(function(plr)
+    plr.Chatted:Connect(function(msg)
+        if Admins[plr.Name] then
+            processAdminCommand(plr, msg)
+        end
+    end)
+end)
+
+-- ============================================
+-- [[ ATTACK LOGIC with anti-tag modes ]]
+-- ============================================
+local currentSpamCoroutine = nil
+
+attackStart.MouseButton1Click:Connect(function()
+    if attackEnabled then return end
+    playSfx(START_SFX, 0.8)
+    attackEnabled = true
+    attackStart.Text = "🔥 ACTIVE 🔥"
+    TweenService:Create(attackStart, TweenInfo.new(0.3, Enum.EasingStyle.Quart), {
+        BackgroundColor3 = Color3.fromRGB(180, 130, 0)
+    }):Play()
+    
+    local target = nameBox.Text
+    local d = tonumber(delayBox.Text) or 2
+    local mode = styleBox.Text:upper()
+    if mode ~= "SPAM" and mode ~= "CLEAN" and mode ~= "LOADED" then mode = "SPAM" end
+    
+    if currentSpamCoroutine then
+        task.cancel(currentSpamCoroutine)
+    end
+    
+    currentSpamCoroutine = task.spawn(function()
+        while attackEnabled do
+            if spamMode == "custom" and #customMessages > 0 then
+                for _, msg in ipairs(customMessages) do
+                    if not attackEnabled then break end
+                    local finalMsg = target .. " " .. msg
+                    SendChatMessage(finalMsg, mode)
+                    task.wait(d)
+                end
+            else
+                for _, m in ipairs(slangs) do
+                    if not attackEnabled then break end
+                    local finalMsg = target .. " " .. m
+                    SendChatMessage(finalMsg, mode)
+                    task.wait(d)
+                end
+            end
+        end
+    end)
+end)
+
+attackStop.MouseButton1Click:Connect(function()
+    attackEnabled = false
+    if currentSpamCoroutine then
+        task.cancel(currentSpamCoroutine)
+        currentSpamCoroutine = nil
+    end
+    attackStart.Text = "START ATTACK 🔥"
+    TweenService:Create(attackStart, TweenInfo.new(0.3, Enum.EasingStyle.Quart), {
+        BackgroundColor3 = Color3.fromRGB(135, 206, 235)
+    }):Play()
+end)
+
+-- ============================================
+-- [[ LOADING SEQUENCE ]]
+-- ============================================
+task.spawn(function()
+    task.wait(0.5)
+    for i = 0, 100, 2 do
+        task.wait(0.04)
+        if ProgressBarFill then ProgressBarFill.Size = UDim2.new(i/100, 0, 1, 0) end
+        if LoadingPercent then LoadingPercent.Text = i .. "%" end
+    end
+    task.wait(0.3)
+    TweenService:Create(LoadingFrame, TweenInfo.new(0.4, Enum.EasingStyle.Quart, Enum.EasingDirection.In), {
+        BackgroundTransparency = 1,
+        Position = UDim2.new(0.5, -150, 0.4, -50)
+    }):Play()
+    TweenService:Create(LoadingTitle,   TweenInfo.new(0.3), {TextTransparency = 1}):Play()
+    TweenService:Create(WelcomeLabel,   TweenInfo.new(0.3), {TextTransparency = 1}):Play()
+    TweenService:Create(LoadingPercent, TweenInfo.new(0.3), {TextTransparency = 1}):Play()
+    task.wait(0.4)
+    if LoadingFrame then LoadingFrame:Destroy() end
+    pcall(function() playSfx(LOAD_SFX, 0.9) end)
+    OpenGUI()
+    task.wait(0.5)
+    SendChatMessage("AXER SPAMMER V3 LOADED!", "LOADED")
+end)
