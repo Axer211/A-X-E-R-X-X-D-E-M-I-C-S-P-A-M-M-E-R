@@ -307,14 +307,14 @@ TweenService:Create(ProgressBarBack, TweenInfo.new(0.5, Enum.EasingStyle.Quart),
 TweenService:Create(LoadingPercent, TweenInfo.new(0.5, Enum.EasingStyle.Quart), {TextTransparency = 0}):Play()
 
 -- ============================================
--- [[ MAIN FRAME (smaller size) ]]
+-- [[ MAIN FRAME (wider, shorter, transparent) ]]
 -- ============================================
 local frame = Instance.new("Frame", ScreenGui)
-frame.Size = UDim2.new(0, 280, 0, 400)
-frame.Position = UDim2.new(0.5, -140, 0.5, -200)
+frame.Size = UDim2.new(0, 320, 0, 370)  -- wider (320) and shorter (370)
+frame.Position = UDim2.new(0.5, -160, 0.5, -185)
 frame.BackgroundColor3 = Color3.fromRGB(200, 230, 255) -- frosty ice
+frame.BackgroundTransparency = 0.15  -- semi-transparent for glassy look
 frame.Visible = false
-frame.BackgroundTransparency = 1
 Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 15)
 local mainStroke = Instance.new("UIStroke", frame)
 mainStroke.Thickness = 2
@@ -327,13 +327,13 @@ local function OpenGUI()
     animating = true
     playSfx(OPEN_SFX, 0.7)
     frame.Visible = true
-    frame.Size = UDim2.new(0, 280, 0, 0)
-    frame.Position = UDim2.new(0.5, -140, 0.5, 0)
+    frame.Size = UDim2.new(0, 320, 0, 0)
+    frame.Position = UDim2.new(0.5, -160, 0.5, 0)
     frame.BackgroundTransparency = 0.8
     TweenService:Create(frame, TweenInfo.new(0.45, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
-        Size = UDim2.new(0, 280, 0, 400),
-        Position = UDim2.new(0.5, -140, 0.5, -200),
-        BackgroundTransparency = 0
+        Size = UDim2.new(0, 320, 0, 370),
+        Position = UDim2.new(0.5, -160, 0.5, -185),
+        BackgroundTransparency = 0.15
     }):Play()
     task.wait(0.45)
     animating = false
@@ -345,8 +345,8 @@ local function CloseGUI()
     animating = true
     playSfx(CLOSE_SFX, 0.6)
     TweenService:Create(frame, TweenInfo.new(0.35, Enum.EasingStyle.Quart, Enum.EasingDirection.In), {
-        Size = UDim2.new(0, 280, 0, 0),
-        Position = UDim2.new(0.5, -140, 0.5, 0),
+        Size = UDim2.new(0, 320, 0, 0),
+        Position = UDim2.new(0.5, -160, 0.5, 0),
         BackgroundTransparency = 0.8
     }):Play()
     task.wait(0.35)
@@ -357,7 +357,7 @@ end
 
 -- [[ TITLE BAR ]]
 local title = Instance.new("TextLabel", frame)
-title.Size = UDim2.new(1, 0, 0, 35)
+title.Size = UDim2.new(1, 0, 0, 32)
 title.Text = "❄️ AXER SPAMMER V3 ❄️"
 title.TextColor3 = Color3.new(0,0,0)
 title.BackgroundColor3 = Color3.fromRGB(180, 210, 230)
@@ -367,7 +367,7 @@ makeDraggable(title, frame)
 
 -- [[ TAB BAR ]]
 local TabBar = Instance.new("Frame", frame)
-TabBar.Size = UDim2.new(1, 0, 0, 28); TabBar.Position = UDim2.new(0, 0, 0, 35)
+TabBar.Size = UDim2.new(1, 0, 0, 26); TabBar.Position = UDim2.new(0, 0, 0, 32)
 TabBar.BackgroundColor3 = Color3.fromRGB(190, 215, 235); TabBar.BorderSizePixel = 0
 
 local tabIndicator = Instance.new("Frame", TabBar)
@@ -394,7 +394,8 @@ AttackTabBtn.TextColor3 = Color3.new(0,0,0)
 
 -- [[ PAGES ]]
 local Pages = Instance.new("Frame", frame)
-Pages.Size = UDim2.new(1, 0, 1, -63); Pages.Position = UDim2.new(0, 0, 0, 63)
+Pages.Size = UDim2.new(1, 0, 1, 0)  -- fills remaining space
+Pages.Position = UDim2.new(0, 0, 0, 58) -- title (32) + tab (26) = 58
 Pages.BackgroundTransparency = 1; Pages.ClipsDescendants = true
 
 local function CreatePage()
@@ -438,7 +439,7 @@ InfoTabBtn.MouseButton1Click:Connect(function()   SwitchPage(InfoPage,    InfoTa
 -- ============================================
 local function MakeBox(parent, placeholder, yPos)
     local b = Instance.new("TextBox", parent)
-    b.Size = UDim2.new(0.9, 0, 0, 32)
+    b.Size = UDim2.new(0.9, 0, 0, 30)
     b.Position = UDim2.new(0.05, 0, 0, yPos)
     b.PlaceholderText = placeholder
     b.BackgroundColor3 = Color3.fromRGB(220, 240, 255)
@@ -450,20 +451,20 @@ end
 
 local function MakeBtn(parent, text, yPos, bgColor, h)
     local b = Instance.new("TextButton", parent)
-    b.Size = UDim2.new(0.9, 0, 0, h or 36)
+    b.Size = UDim2.new(0.9, 0, 0, h or 34)
     b.Position = UDim2.new(0.05, 0, 0, yPos)
     b.Text = text; b.BackgroundColor3 = bgColor
     b.TextColor3 = Color3.new(0,0,0); b.Font = Enum.Font.GothamBold; b.TextSize = 12
     Instance.new("UICorner", b)
     b.MouseButton1Down:Connect(function()
         TweenService:Create(b, TweenInfo.new(0.08, Enum.EasingStyle.Quad), {
-            Size = UDim2.new(0.87, 0, 0, (h or 36) - 3)
+            Size = UDim2.new(0.87, 0, 0, (h or 34) - 3)
         }):Play()
         playSfx(CLICK_SFX, 0.35)
     end)
     b.MouseButton1Up:Connect(function()
         TweenService:Create(b, TweenInfo.new(0.15, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
-            Size = UDim2.new(0.9, 0, 0, h or 36)
+            Size = UDim2.new(0.9, 0, 0, h or 34)
         }):Play()
     end)
     return b
@@ -471,14 +472,14 @@ end
 
 local function MakeToggle(parent, text, yPos, callback, defaultValue)
     local lbl = Instance.new("TextLabel", parent)
-    lbl.Text = text; lbl.Size = UDim2.new(0.6, 0, 0, 30)
+    lbl.Text = text; lbl.Size = UDim2.new(0.6, 0, 0, 28)
     lbl.Position = UDim2.new(0.05, 0, 0, yPos); lbl.TextColor3 = Color3.new(0,0,0)
-    lbl.Font = Enum.Font.GothamBold; lbl.TextSize = 12; lbl.BackgroundTransparency = 1
+    lbl.Font = Enum.Font.GothamBold; lbl.TextSize = 11; lbl.BackgroundTransparency = 1
     lbl.TextXAlignment = Enum.TextXAlignment.Left
 
     local tog = Instance.new("TextButton", parent)
-    tog.Text = "OFF"; tog.Size = UDim2.new(0, 50, 0, 24)
-    tog.Position = UDim2.new(1, -60, 0, yPos + 3)
+    tog.Text = "OFF"; tog.Size = UDim2.new(0, 48, 0, 22)
+    tog.Position = UDim2.new(1, -56, 0, yPos + 3)
     tog.BackgroundColor3 = Color3.fromRGB(180, 0, 0); tog.TextColor3 = Color3.new(1,1,1)
     tog.Font = Enum.Font.GothamBold; tog.TextSize = 11
     Instance.new("UICorner", tog)
@@ -491,13 +492,13 @@ local function MakeToggle(parent, text, yPos, callback, defaultValue)
     
     tog.MouseButton1Down:Connect(function()
         TweenService:Create(tog, TweenInfo.new(0.07, Enum.EasingStyle.Quad), {
-            Size = UDim2.new(0, 44, 0, 20)
+            Size = UDim2.new(0, 42, 0, 18)
         }):Play()
         playSfx(TOGGLE_SFX, 0.5)
     end)
     tog.MouseButton1Up:Connect(function()
         TweenService:Create(tog, TweenInfo.new(0.15, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
-            Size = UDim2.new(0, 50, 0, 24)
+            Size = UDim2.new(0, 48, 0, 22)
         }):Play()
     end)
     tog.MouseButton1Click:Connect(function()
@@ -516,17 +517,16 @@ end
 -- ============================================
 local AttackScroll = Instance.new("ScrollingFrame", AttackPage)
 AttackScroll.Size = UDim2.new(1,0,1,0); AttackScroll.BackgroundTransparency = 1
-AttackScroll.ScrollBarThickness = 2; AttackScroll.CanvasSize = UDim2.new(0,0,0,450)
+AttackScroll.ScrollBarThickness = 2; AttackScroll.CanvasSize = UDim2.new(0,0,0,430) -- slightly reduced
 
-local nameBox  = MakeBox(AttackScroll, "Target Name...", 10)
-local delayBox = MakeBox(AttackScroll, "Delay seconds (default: 2)", 52)
-local styleBox = MakeBox(AttackScroll, "Mode: SPAM / CLEAN / LOADED", 94)
+local nameBox  = MakeBox(AttackScroll, "Target Name...", 8)
+local delayBox = MakeBox(AttackScroll, "Delay seconds (default: 2)", 46)
+local styleBox = MakeBox(AttackScroll, "Mode: SPAM / CLEAN / LOADED", 84)
 
-local attackStart = MakeBtn(AttackScroll, "START ATTACK 🔥", 140, Color3.fromRGB(135, 206, 235), 38)
-local attackStop  = MakeBtn(AttackScroll, "STOP ATTACK",     185, Color3.fromRGB(200, 80, 80), 38)
+local attackStart = MakeBtn(AttackScroll, "START ATTACK 🔥", 126, Color3.fromRGB(135, 206, 235), 36)
+local attackStop  = MakeBtn(AttackScroll, "STOP ATTACK",     170, Color3.fromRGB(200, 80, 80), 36)
 
--- Custom Spam Mode Toggle
-local customModeToggle = MakeToggle(AttackScroll, "CUSTOM SPAM MODE", 235, function(v) 
+local customModeToggle = MakeToggle(AttackScroll, "CUSTOM SPAM MODE", 216, function(v) 
     spamMode = v and "custom" or "default"
     if spamMode == "custom" then
         customMessageBox.Visible = true
@@ -541,15 +541,15 @@ local customModeToggle = MakeToggle(AttackScroll, "CUSTOM SPAM MODE", 235, funct
     end
 end, false)
 
-local customMessageBox = MakeBox(AttackScroll, "Enter custom message...", 278)
+local customMessageBox = MakeBox(AttackScroll, "Enter custom message...", 254)
 customMessageBox.Visible = false
 
-local addCustomBtn = MakeBtn(AttackScroll, "➕ ADD MESSAGE", 322, Color3.fromRGB(100, 150, 220), 30)
+local addCustomBtn = MakeBtn(AttackScroll, "➕ ADD MESSAGE", 296, Color3.fromRGB(100, 150, 220), 28)
 addCustomBtn.Visible = false
 
 local customMessageList = Instance.new("TextLabel", AttackScroll)
-customMessageList.Size = UDim2.new(0.9, 0, 0, 50)
-customMessageList.Position = UDim2.new(0.05, 0, 0, 362)
+customMessageList.Size = UDim2.new(0.9, 0, 0, 44)
+customMessageList.Position = UDim2.new(0.05, 0, 0, 332)
 customMessageList.BackgroundColor3 = Color3.fromRGB(220, 240, 255)
 customMessageList.BackgroundTransparency = 0.4
 customMessageList.TextColor3 = Color3.fromRGB(0,0,0)
@@ -562,7 +562,7 @@ customMessageList.Text = "Custom Messages:\n(Click + to add, press CLEAR to remo
 customMessageList.Visible = false
 Instance.new("UICorner", customMessageList)
 
-local clearCustomBtn = MakeBtn(AttackScroll, "🗑️ CLEAR ALL MESSAGES", 422, Color3.fromRGB(200, 120, 80), 30)
+local clearCustomBtn = MakeBtn(AttackScroll, "🗑️ CLEAR ALL MESSAGES", 386, Color3.fromRGB(200, 120, 80), 28)
 clearCustomBtn.Visible = false
 
 local function updateCustomMessageDisplay()
@@ -599,18 +599,18 @@ end)
 -- ============================================
 local SettingScroll = Instance.new("ScrollingFrame", SettingPage)
 SettingScroll.Size = UDim2.new(1, 0, 1, 0); SettingScroll.BackgroundTransparency = 1
-SettingScroll.ScrollBarThickness = 2; SettingScroll.CanvasSize = UDim2.new(0,0,0,380)
+SettingScroll.ScrollBarThickness = 2; SettingScroll.CanvasSize = UDim2.new(0,0,0,360)
 
 local function CreateSettingRow(text, yPos, callback)
     local lbl = Instance.new("TextLabel", SettingScroll)
-    lbl.Text = text; lbl.Size = UDim2.new(0.6, 0, 0, 30)
+    lbl.Text = text; lbl.Size = UDim2.new(0.6, 0, 0, 28)
     lbl.Position = UDim2.new(0.05, 0, 0, yPos); lbl.TextColor3 = Color3.new(0,0,0)
-    lbl.Font = Enum.Font.GothamBold; lbl.TextSize = 12; lbl.BackgroundTransparency = 1
+    lbl.Font = Enum.Font.GothamBold; lbl.TextSize = 11; lbl.BackgroundTransparency = 1
     lbl.TextXAlignment = Enum.TextXAlignment.Left
 
     local tog = Instance.new("TextButton", SettingScroll)
-    tog.Text = "OFF"; tog.Size = UDim2.new(0, 50, 0, 24)
-    tog.Position = UDim2.new(1, -60, 0, yPos + 3)
+    tog.Text = "OFF"; tog.Size = UDim2.new(0, 48, 0, 22)
+    tog.Position = UDim2.new(1, -56, 0, yPos + 3)
     tog.BackgroundColor3 = Color3.fromRGB(180, 0, 0); tog.TextColor3 = Color3.new(1,1,1)
     tog.Font = Enum.Font.GothamBold; tog.TextSize = 11
     Instance.new("UICorner", tog)
@@ -618,13 +618,13 @@ local function CreateSettingRow(text, yPos, callback)
     local state = false
     tog.MouseButton1Down:Connect(function()
         TweenService:Create(tog, TweenInfo.new(0.07, Enum.EasingStyle.Quad), {
-            Size = UDim2.new(0, 44, 0, 20)
+            Size = UDim2.new(0, 42, 0, 18)
         }):Play()
         playSfx(TOGGLE_SFX, 0.5)
     end)
     tog.MouseButton1Up:Connect(function()
         TweenService:Create(tog, TweenInfo.new(0.15, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
-            Size = UDim2.new(0, 50, 0, 24)
+            Size = UDim2.new(0, 48, 0, 22)
         }):Play()
     end)
     tog.MouseButton1Click:Connect(function()
@@ -637,20 +637,20 @@ local function CreateSettingRow(text, yPos, callback)
     end)
 end
 
-CreateSettingRow("ANTI-AFK",    8,  function(v) antiAfkEnabled = v end)
-CreateSettingRow("SPEED BOOST", 48,  function(v) speedEnabled   = v end)
-CreateSettingRow("JUMP BOOST",  88, function(v) jumpEnabled    = v end)
-CreateSettingRow("NOCLIP",      128, function(v) noclipEnabled  = v end)
-CreateSettingRow("NOSIT",       168, function(v) nositEnabled   = v end)
-CreateSettingRow("🛡️ ANTI-COPY (BH)", 208, function(v) 
+CreateSettingRow("ANTI-AFK",    6,  function(v) antiAfkEnabled = v end)
+CreateSettingRow("SPEED BOOST", 40,  function(v) speedEnabled   = v end)
+CreateSettingRow("JUMP BOOST",  74, function(v) jumpEnabled    = v end)
+CreateSettingRow("NOCLIP",      108, function(v) noclipEnabled  = v end)
+CreateSettingRow("NOSIT",       142, function(v) nositEnabled   = v end)
+CreateSettingRow("🛡️ ANTI-COPY (BH)", 176, function(v) 
     antiCopyEnabled = v
     if v then setupAntiCopy() end
 end)
-CreateSettingRow("🌀 ANTI-FLING", 248, function(v) 
+CreateSettingRow("🌀 ANTI-FLING", 210, function(v) 
     antiFlingEnabled = v
     if v then setupAntiFling() end
 end)
-CreateSettingRow("🚫 ANTI-TAG (always ON)", 288, function(v) end) -- placeholder
+CreateSettingRow("🚫 ANTI-TAG (always ON)", 244, function(v) end) -- placeholder
 
 -- [[ SETTINGS LOGIC ]]
 lp.Idled:Connect(function()
@@ -703,7 +703,7 @@ local themeList = {
 
 for _, t in ipairs(themeList) do
     local tBtn = Instance.new("TextButton", ThemeContainer)
-    tBtn.Size = UDim2.new(1, 0, 0, 34)
+    tBtn.Size = UDim2.new(1, 0, 0, 32)
     tBtn.Text = t.name
     tBtn.BackgroundColor3 = t.color
     tBtn.TextColor3 = (t.color.R + t.color.G + t.color.B) / 3 > 0.5 and Color3.new(0,0,0) or Color3.new(1,1,1)
@@ -714,23 +714,23 @@ for _, t in ipairs(themeList) do
     
     tBtn.MouseEnter:Connect(function()
         TweenService:Create(tBtn, TweenInfo.new(0.2, Enum.EasingStyle.Quad), {
-            Size = UDim2.new(1, 4, 0, 38)
+            Size = UDim2.new(1, 4, 0, 36)
         }):Play()
     end)
     tBtn.MouseLeave:Connect(function()
         TweenService:Create(tBtn, TweenInfo.new(0.2, Enum.EasingStyle.Quad), {
-            Size = UDim2.new(1, 0, 0, 34)
+            Size = UDim2.new(1, 0, 0, 32)
         }):Play()
     end)
     tBtn.MouseButton1Down:Connect(function()
         TweenService:Create(tBtn, TweenInfo.new(0.07, Enum.EasingStyle.Quad), {
-            Size = UDim2.new(0.98, 0, 0, 30)
+            Size = UDim2.new(0.98, 0, 0, 28)
         }):Play()
         playSfx(CLICK_SFX, 0.3)
     end)
     tBtn.MouseButton1Up:Connect(function()
         TweenService:Create(tBtn, TweenInfo.new(0.15, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
-            Size = UDim2.new(1, 0, 0, 34)
+            Size = UDim2.new(1, 0, 0, 32)
         }):Play()
     end)
     tBtn.MouseButton1Click:Connect(function()
@@ -755,26 +755,26 @@ InfoScroll.ScrollBarThickness = 2; InfoScroll.CanvasSize = UDim2.new(0,0,0,300)
 
 local function MakeInfoLabel(parent, text, yPos, col)
     local l = Instance.new("TextLabel", parent)
-    l.Text = text; l.Size = UDim2.new(0.9, 0, 0, 24)
+    l.Text = text; l.Size = UDim2.new(0.9, 0, 0, 22)
     l.Position = UDim2.new(0.05, 0, 0, yPos)
     l.TextColor3 = col or Color3.new(0,0,0)
-    l.Font = Enum.Font.GothamMedium; l.TextSize = 13; l.BackgroundTransparency = 1
+    l.Font = Enum.Font.GothamMedium; l.TextSize = 12; l.BackgroundTransparency = 1
     l.TextXAlignment = Enum.TextXAlignment.Left
     return l
 end
 
-MakeInfoLabel(InfoScroll, "👑 Developer: Axer", 10, Color3.fromRGB(0,0,0))
-MakeInfoLabel(InfoScroll, "🤝 Co-Developer: Xdemic", 38, Color3.fromRGB(40,40,40))
-MakeInfoLabel(InfoScroll, "💬 Discord: Mickeyyy009", 66, Color3.fromRGB(0, 100, 200))
-MakeInfoLabel(InfoScroll, "🎮 Roblox: erennn0779", 94, Color3.fromRGB(200, 50, 50))
-MakeInfoLabel(InfoScroll, "📦 Version: V3 Ultimate", 122, Color3.fromRGB(0, 150, 0))
-MakeInfoLabel(InfoScroll, "🛡️ Features:", 150, Color3.fromRGB(0,0,0))
-MakeInfoLabel(InfoScroll, "   - Anti-Lag (Always ON)", 174, Color3.fromRGB(50,50,50))
-MakeInfoLabel(InfoScroll, "   - Anti-Tag Spam (Always ON)", 198, Color3.fromRGB(50,50,50))
-MakeInfoLabel(InfoScroll, "   - Anti-Fling", 222, Color3.fromRGB(50,50,50))
-MakeInfoLabel(InfoScroll, "   - Anti-Copy (Brookhaven)", 246, Color3.fromRGB(50,50,50))
-MakeInfoLabel(InfoScroll, "   - Speed / Jump / Noclip", 270, Color3.fromRGB(50,50,50))
-MakeInfoLabel(InfoScroll, "   - Custom Themes", 294, Color3.fromRGB(50,50,50))
+MakeInfoLabel(InfoScroll, "👑 Developer: Axer", 8, Color3.fromRGB(0,0,0))
+MakeInfoLabel(InfoScroll, "🤝 Co-Developer: Xdemic", 34, Color3.fromRGB(40,40,40))
+MakeInfoLabel(InfoScroll, "💬 Discord: Mickeyyy009", 60, Color3.fromRGB(0, 100, 200))
+MakeInfoLabel(InfoScroll, "🎮 Roblox: erennn0779", 86, Color3.fromRGB(200, 50, 50))
+MakeInfoLabel(InfoScroll, "📦 Version: V3 Ultimate", 112, Color3.fromRGB(0, 150, 0))
+MakeInfoLabel(InfoScroll, "🛡️ Features:", 138, Color3.fromRGB(0,0,0))
+MakeInfoLabel(InfoScroll, "   - Anti-Lag (Always ON)", 162, Color3.fromRGB(50,50,50))
+MakeInfoLabel(InfoScroll, "   - Anti-Tag Spam (Always ON)", 186, Color3.fromRGB(50,50,50))
+MakeInfoLabel(InfoScroll, "   - Anti-Fling", 210, Color3.fromRGB(50,50,50))
+MakeInfoLabel(InfoScroll, "   - Anti-Copy (Brookhaven)", 234, Color3.fromRGB(50,50,50))
+MakeInfoLabel(InfoScroll, "   - Speed / Jump / Noclip", 258, Color3.fromRGB(50,50,50))
+MakeInfoLabel(InfoScroll, "   - Custom Themes", 282, Color3.fromRGB(50,50,50))
 
 -- ============================================
 -- [[ TOGGLE BUTTON (X) ]]
@@ -815,7 +815,6 @@ task.spawn(function()
     while true do
         h = (h + 0.005) % 1
         local c = Color3.fromHSV(h, 1, 1)
-        -- We do not force stroke colors; only if user hasn't selected a theme, but we can still animate the float stroke
         pcall(function() floatStroke.Color = c end)
         pcall(function() float.TextColor3 = c end)
         task.wait(0.05)
@@ -947,10 +946,7 @@ attackStart.MouseButton1Click:Connect(function()
     currentSpamCoroutine = task.spawn(function()
         while attackEnabled do
             if spamMode == "custom" and #customMessages > 0 then
-                for _, msg in ipairs(customMessages) do
-                    if not attackEnabled then break end
-                    local finalMsg = target .. " " .. msg
-                    SendChatMessage(finalMsg, mode)
+                for _, msg in ipairs(customMessage(finalMsg, mode)
                     task.wait(d)
                 end
             else
